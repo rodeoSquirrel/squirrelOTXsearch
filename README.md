@@ -6,8 +6,10 @@ For details about the Alienvault OTX DirectConnect API, visit https://otx.alienv
 Supported functionality includes:
 * JSON or CSV output printed to file or terminal
 * Search by IP, hash, domain, CVE, freeform keyword, or by Pulse ID
-* Export YARA rules, IPs, domains, and/or hashes from your subscribed Pulses
+* Export YARA rules from your subscribed Pulses
 
+Coming Soon:
+* Export IPs, hashes, domains, and hostnames from your subscribed Pulses
 
 Example Usage:
 Export YARA rules from subsribed pulses
