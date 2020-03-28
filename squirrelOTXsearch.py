@@ -2,7 +2,8 @@
 #   Version Info
 #
 #   Script: Squirrel OTX Search
-#   Description: A cross platform command line tool that search against Alienvault OTX from the comfort of your terminal written for Python3
+#   Description: A cross platform command line tool that search against Alienvault OTX from the comfort of your
+#   terminal written for Python3
 #   Version: 1.0
 #
 ##
