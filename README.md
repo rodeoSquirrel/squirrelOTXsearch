@@ -3,6 +3,12 @@ A cross platform command line tool that search against Alienvault OTX from the c
 
 For details about the Alienvault OTX DirectConnect API, visit https://otx.alienvault.com/api
 
+Supported functionality includes:
+* JSON or CSV output printed to file or terminal
+* Search by IP, hash, domain, CVE, freeform keyword, or by Pulse ID
+* Export YARA rules, IPs, domains, and/or hashes from your subscribed Pulses
+
+
 Example Usage:
 Export YARA rules from subsribed pulses
 
