@@ -39,8 +39,7 @@ or the included [requirements.txt](./requirements.txt) file
     ```
     > pip3 install -r requirements.txt
     ```
-```
+
 Todo:
-- [] Add support for exporting atomic indicators from subscribed Pulses
-- [] Support CSV output for more of the server responses
-```
+- [ ] Add support for exporting atomic indicators from subscribed Pulses
+- [ ] Support CSV output for more of the server responses
