@@ -1,4 +1,4 @@
-# squirrelOTX
+# Squirrel OTX Search
 A cross platform command line tool that search against Alienvault OTX from the comfort of your terminal written in Python3
 
 For details about the Alienvault OTX DirectConnect API, visit https://otx.alienvault.com/api
