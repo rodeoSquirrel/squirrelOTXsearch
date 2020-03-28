@@ -61,8 +61,10 @@ parser.add_argument('--text', action='store',
                     help='Search by raw text input, this is the kitchen sink option')
 parser.add_argument('--pulseID', action='store',
                     help='Search for indicators by pulse ID')
-parser.add_argument('--export', action='store', choices=['IPv4', 'hash', 'domain', 'hostname', 'YARA'],
+parser.add_argument('--export', action='store', choices=['YARA'],
                     help='Export indicators for pulses you have subscribed to.')
+#parser.add_argument('--export', action='store', choices=['IPv4', 'hash', 'domain', 'hostname', 'YARA'],
+#                    help='Export indicators for pulses you have subscribed to.')
 parser.add_argument('--ipv4', action='store', choices=['general', 'reputation', 'geo', 'url_list',
                     'passive_dns', 'http_scans'], help='Search for specifics on a particular IPv4 address')
 parser.add_argument('--ipv6', action='store',     choices=['general', 'reputation', 'geo', 'url_list', 'passive_dns'],
