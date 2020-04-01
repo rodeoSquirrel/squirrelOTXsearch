@@ -165,6 +165,7 @@ def get_OTX_search():
         ).json()
         if first_response['detail']:
             sys.exit(first_response['detail'] + ', set OTXAPI environment variable and try again')
+    # This exception chain will need some better handling, first_response is json and has no response code
     except requests.exceptions.HTTPError as errh:
         sys.exit("Http Error:",errh)
     except requests.exceptions.ConnectionError as errc:
