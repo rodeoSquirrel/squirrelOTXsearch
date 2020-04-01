@@ -12,6 +12,7 @@ import json
 import requests
 import argparse
 import os
+import sys
 import re
 import pandas
 
@@ -40,11 +41,12 @@ SquirrelOTXSearch v1.0
 
     Example Usage:
     Export YARA rules from subsribed pulses
-    > python.exe .\\%(prog)s --key 12345678987654321 --export=YARA
+    > python.exe .\\%(prog)s --export=YARA
     Get general data about a file hash
-    > python.exe .\\%(prog)s --key 12345678987654321 --hash=general --indicator=076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560
+    > python.exe .\\%(prog)s --hash=general --indicator=076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560
 
-    Warnings:
+    Prerequisites and Warnings:
+    - Set an environment variable OTXAPI to store your API key
     - Exports may take a while to return results based on how pulse subscriptions you have, YMMV....
 
     Dependencies can be met through existing pip packages:
@@ -55,8 +57,6 @@ SquirrelOTXSearch v1.0
                 epilog='Contact me on GitHub(https://github.com/rodeoSquirrel) or Twitter(@rodeo_squirrel) for issues or feature requests',
                 formatter_class=argparse.RawTextHelpFormatter
                                 )
-parser.add_argument('--key', type=str, required=True,
-                    help='Enter API token value')
 parser.add_argument('--text', action='store',
                     help='Search by raw text input, this is the kitchen sink option')
 parser.add_argument('--pulseID', action='store',
@@ -101,7 +101,11 @@ file_details = '/api/v1/indicators/file/'
 url_details = '/api/v1/indicators/url/'
 cve_details = '/api/v1/indicators/cve/'
 
+otx_key = os.getenv('OTXAPI')
 total_pages = 0
+
+if not otx_key:
+    sys.exit('WARNING: OTXAPI environment variable not detected. Set the environment variable, open a new terminal session, and try again...')
 
 if args.dumpDir and not os.path.isdir(args.dumpDir):
     makeDumpDir = os.mkdir(args.dumpDir)
@@ -157,22 +161,22 @@ def get_OTX_search():
                 api_url=REST_API_domain,
                 path=API_endpoint,
                 uri_vars=URI_vars,
-            ), auth=TokenAuth(args.key)
+            ), auth=TokenAuth(otx_key)
         ).json()
+        if first_response['detail']:
+            sys.exit(first_response['detail'] + ', set OTXAPI environment variable and try again')
     except requests.exceptions.HTTPError as errh:
-        print ("Http Error:",errh)
+        sys.exit("Http Error:",errh)
     except requests.exceptions.ConnectionError as errc:
-        print ("Error Connecting:",errc)
+        sys.exit("Error Connecting:",errc)
     except requests.exceptions.Timeout as errt:
-        print ("Timeout Error:",errt)
+        sys.exit("Timeout Error:",errt)
     except requests.exceptions.RequestException as err:
-        print ("Oops: Something Else",err)
-    else:
-        try_first_response = first_response
+        sys.exit("Oops: Something Else",err)
 
     if not(args.indicator or args.cve):
-        get_next_page = json.dumps(try_first_response)
-        search_result_count = try_first_response['count']
+        get_next_page = json.dumps(first_response)
+        search_result_count = first_response['count']
         search_substring = 'page='
         page_count = search_result_count // 1000
         page_count_remainder = search_result_count % 1000
@@ -184,7 +188,7 @@ def get_OTX_search():
         total_pages = page_count + page_count_mod
         i = total_pages
 
-        for result in try_first_response['results']:
+        for result in first_response['results']:
             effective_result.append(result)
 
         while i > 1:
@@ -196,27 +200,26 @@ def get_OTX_search():
                 uri_vars=URI_vars,
                 uri_pages='&' + search_substring,
                 pages_int=i
-                ), auth=TokenAuth(args.key)
+                ), auth=TokenAuth(otx_key)
                 ).json()
             except requests.exceptions.HTTPError as errh:
-                print ("Http Error:",errh)
+                sys.exit("Http Error:",errh)
             except requests.exceptions.ConnectionError as errc:
-                print ("Error Connecting:",errc)
+                sys.exit("Error Connecting:",errc)
             except requests.exceptions.Timeout as errt:
-                print ("Timeout Error:",errt)
+                sys.exit("Timeout Error:",errt)
             except requests.exceptions.RequestException as err:
-                print ("Oops: Something Else",err)
-            else:
-                next_result = next_response
-                next_page = json.dumps(next_result)
-                next_page_list = json.loads(next_page)
+                sys.exit("Oops: Something Else",err)
 
-                for result in next_result['results']:
-                    effective_result.append(result)
+            next_page = json.dumps(next_response)
+            next_page_list = json.loads(next_page)
 
-                    i -= 1
+            for result in next_response['results']:
+                effective_result.append(result)
+
+                i -= 1
     else:
-        effective_result.append(try_first_response)
+        effective_result.append(first_response)
 
 
     return effective_result
