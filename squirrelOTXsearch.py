@@ -165,8 +165,10 @@ def get_OTX_search():
         )
         first_response = first_request.json()
         first_status = first_request.status_code
-    except first_request.raise_for_status() as err:
-        sys.exit(err)
+        if first_status != 200:
+            print(first_request.raise_for_status())
+    except Exception as e:
+        sys.exit(e)
 
     if not(args.indicator or args.cve):
         get_next_page = json.dumps(first_response)
@@ -198,8 +200,10 @@ def get_OTX_search():
                 )
                 next_response = next_request.json()
                 next_status = next_request.status_code
-            except next_request.raise_for_status() as err:
-                sys.exit(err)
+                if next_status != 200:
+                    print(next_request.raise_for_status())
+            except Exception as e:
+                print(e)
 
             next_page = json.dumps(next_response)
             next_page_list = json.loads(next_page)
