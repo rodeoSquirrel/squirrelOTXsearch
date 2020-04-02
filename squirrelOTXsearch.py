@@ -2,9 +2,9 @@
 #   Version Info
 #
 #   Script: Squirrel OTX Search
-#   Description: A cross platform command line tool that search against Alienvault OTX from the comfort of your
-#                terminal written for Python3
-#   Version: 1.0
+#   Description: A cross platform command line tool that search against Alienvault OTX
+#                from the comfort of your terminal written for Python3
+#   Version: 1.0.1
 #
 ##
 
@@ -156,24 +156,17 @@ def get_OTX_search():
     effective_result = []
 
     try:
-        first_response = requests.get(
+        first_request = requests.get(
             url='{api_url}{path}{uri_vars}'.format(
                 api_url=REST_API_domain,
                 path=API_endpoint,
                 uri_vars=URI_vars,
             ), auth=TokenAuth(otx_key)
-        ).json()
-        if first_response['detail']:
-            sys.exit(first_response['detail'] + ', set OTXAPI environment variable and try again')
-    # This exception chain will need some better handling, first_response is json and has no response code
-    except requests.exceptions.HTTPError as errh:
-        sys.exit("Http Error:",errh)
-    except requests.exceptions.ConnectionError as errc:
-        sys.exit("Error Connecting:",errc)
-    except requests.exceptions.Timeout as errt:
-        sys.exit("Timeout Error:",errt)
-    except requests.exceptions.RequestException as err:
-        sys.exit("Oops: Something Else",err)
+        )
+        first_response = first_request.json()
+        first_status = first_request.status_code
+    except first_request.raise_for_status() as err:
+        sys.exit(err)
 
     if not(args.indicator or args.cve):
         get_next_page = json.dumps(first_response)
@@ -194,23 +187,19 @@ def get_OTX_search():
 
         while i > 1:
             try:
-                next_response = requests.get(
+                next_request = requests.get(
                 url='{api_url}{path}{uri_vars}{uri_pages}{pages_int}'.format(
-                api_url=REST_API_domain,
-                path=API_endpoint,
-                uri_vars=URI_vars,
-                uri_pages='&' + search_substring,
-                pages_int=i
+                    api_url=REST_API_domain,
+                    path=API_endpoint,
+                    uri_vars=URI_vars,
+                    uri_pages='&' + search_substring,
+                    pages_int=i
                 ), auth=TokenAuth(otx_key)
-                ).json()
-            except requests.exceptions.HTTPError as errh:
-                sys.exit("Http Error:",errh)
-            except requests.exceptions.ConnectionError as errc:
-                sys.exit("Error Connecting:",errc)
-            except requests.exceptions.Timeout as errt:
-                sys.exit("Timeout Error:",errt)
-            except requests.exceptions.RequestException as err:
-                sys.exit("Oops: Something Else",err)
+                )
+                next_response = next_request.json()
+                next_status = next_request.status_code
+            except next_request.raise_for_status() as err:
+                sys.exit(err)
 
             next_page = json.dumps(next_response)
             next_page_list = json.loads(next_page)
