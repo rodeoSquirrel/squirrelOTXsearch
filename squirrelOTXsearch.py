@@ -104,11 +104,14 @@ cve_details = '/api/v1/indicators/cve/'
 otx_key = os.getenv('OTXAPI')
 total_pages = 0
 
-if not otx_key:
+if len(sys.argv)==1:
+    parser.print_help()
+    sys.exit(1)
+elif not otx_key:
     sys.exit('WARNING: OTXAPI environment variable not detected. Set the environment variable, open a new terminal session, and try again...')
 
 if args.dumpDir and not os.path.isdir(args.dumpDir):
-    makeDumpDir = os.mkdir(args.dumpDir)
+    os.mkdir(args.dumpDir)
 
 class TokenAuth(AuthBase):
     # Implements a custom authentication scheme
