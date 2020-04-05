@@ -4,7 +4,7 @@
 #   Script: Squirrel OTX Search
 #   Description: A cross platform command line tool that search against Alienvault OTX
 #                from the comfort of your terminal written for Python3
-#   Version: 1.0.1
+#   Version: 1.0.2
 #
 ##
 
@@ -89,20 +89,7 @@ parser.add_argument('--dumpDir', action='store', required=False,
                     help='Path for dumping exported data to a file')
 args = parser.parse_args()
 
-REST_API_domain = 'https://otx.alienvault.com'
-search_pulses = '/api/v1/search/pulses?q='
-pulse_by_id = '/api/v1/pulses/'
-export_indicators = '/api/v1/indicators/export'
-ipv4_details = '/api/v1/indicators/IPv4/'
-ipv6_details = '/api/v1/indicators/IPv6/'
-domain_details = '/api/v1/indicators/domain/'
-hostname_details = '/api/v1/indicators/hostname/'
-file_details = '/api/v1/indicators/file/'
-url_details = '/api/v1/indicators/url/'
-cve_details = '/api/v1/indicators/cve/'
-
 otx_key = os.getenv('OTXAPI')
-total_pages = 0
 
 if len(sys.argv)==1:
     parser.print_help()
@@ -123,6 +110,20 @@ class TokenAuth(AuthBase):
         return r
 
 def get_OTX_search():
+    REST_API_domain = 'https://otx.alienvault.com'
+    search_pulses = '/api/v1/search/pulses?q='
+    pulse_by_id = '/api/v1/pulses/'
+    export_indicators = '/api/v1/indicators/export'
+    ipv4_details = '/api/v1/indicators/IPv4/'
+    ipv6_details = '/api/v1/indicators/IPv6/'
+    domain_details = '/api/v1/indicators/domain/'
+    hostname_details = '/api/v1/indicators/hostname/'
+    file_details = '/api/v1/indicators/file/'
+    url_details = '/api/v1/indicators/url/'
+    cve_details = '/api/v1/indicators/cve/'
+    total_pages = 0
+
+
     if args.text:
         API_endpoint = search_pulses
         URI_vars = args.text + '&sort=-modified'
