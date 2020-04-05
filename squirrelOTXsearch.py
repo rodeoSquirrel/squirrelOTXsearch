@@ -61,10 +61,8 @@ parser.add_argument('--text', action='store',
                     help='Search by raw text input, this is the kitchen sink option')
 parser.add_argument('--pulseID', action='store',
                     help='Search for indicators by pulse ID')
-parser.add_argument('--export', action='store', choices=['YARA'],
-                    help='Export indicators for pulses you have subscribed to.')
-#parser.add_argument('--export', action='store', choices=['IPv4', 'hash', 'domain', 'hostname', 'YARA'],
-#                    help='Export indicators for pulses you have subscribed to.')
+parser.add_argument('--yara', action='store_true',
+                    help='Export YARA rules from your subscribed Pulses')
 parser.add_argument('--ipv4', action='store', choices=['general', 'reputation', 'geo', 'url_list',
                     'passive_dns', 'http_scans'], help='Search for specifics on a particular IPv4 address')
 parser.add_argument('--ipv6', action='store',     choices=['general', 'reputation', 'geo', 'url_list', 'passive_dns'],
@@ -132,9 +130,9 @@ def get_OTX_search():
     elif args.pulseID:
         API_endpoint = pulse_by_id
         URI_vars = args.pulseID + '/indicators'
-    elif args.export:
+    elif args.yara:
         API_endpoint = export_indicators
-        URI_vars = '?types=' + args.export
+        URI_vars = '?types=YARA'
     elif args.ipv4:
         API_endpoint = ipv4_details
         URI_vars = args.indicator + '/' + args.ipv4
@@ -172,12 +170,11 @@ def get_OTX_search():
         first_response = first_request.json()
         first_status = first_request.status_code
         if first_status != 200:
-            print(first_request.raise_for_status())
+            first_request.raise_for_status()
     except Exception as e:
         sys.exit(e)
 
     if not(args.indicator or args.cve):
-        get_next_page = json.dumps(first_response)
         search_result_count = first_response['count']
         search_substring = 'page='
         page_count = search_result_count // 1000
@@ -188,43 +185,40 @@ def get_OTX_search():
             page_count_mod += 1
 
         total_pages = page_count + page_count_mod
-        i = total_pages
+        i = 2
 
         for result in first_response['results']:
             effective_result.append(result)
 
-        while i > 1:
+        while total_pages >= i:
             try:
                 next_request = requests.get(
-                url='{api_url}{path}{uri_vars}{uri_pages}{pages_int}'.format(
-                    api_url=REST_API_domain,
-                    path=API_endpoint,
-                    uri_vars=URI_vars,
-                    uri_pages='&' + search_substring,
-                    pages_int=i
-                ), auth=TokenAuth(otx_key)
+                    url='{api_url}{path}{uri_vars}{uri_pages}{pages_int}'.format(
+                        api_url=REST_API_domain,
+                        path=API_endpoint,
+                        uri_vars=URI_vars,
+                        uri_pages='&' + search_substring,
+                        pages_int=i
+                    ), auth=TokenAuth(otx_key)
                 )
                 next_response = next_request.json()
                 next_status = next_request.status_code
+
                 if next_status != 200:
-                    print(next_request.raise_for_status())
+                    next_request.raise_for_status()
+
+                for result in next_response['results']:
+                    effective_result.append(result)
             except Exception as e:
                 print(e)
 
-            next_page = json.dumps(next_response)
-            next_page_list = json.loads(next_page)
-
-            for result in next_response['results']:
-                effective_result.append(result)
-
-                i -= 1
+            i += 1
     else:
         effective_result.append(first_response)
 
-
     return effective_result
 
-def get_results():
+def print_results():
     OTX_search_result = get_OTX_search()
     OTX_JSON_result = json.dumps(OTX_search_result, indent=2)
 
@@ -251,7 +245,7 @@ def get_results():
                 contents.append(OTX_search_result)
                 json.dump(contents, f)
         f.close()
-    elif args.export == 'YARA':
+    elif args.yara:
         item_dict = json.loads(OTX_JSON_result)
         alerts_array_length = len(item_dict)
     else:
@@ -262,7 +256,7 @@ def get_results():
         OTX_out_array = []
 
     # Condition for writing out to a json file
-    if not(args.export) and (args.outfile and args.format == 'json'):
+    if not(args.yara) and (args.outfile and args.format == 'json'):
         outfile = args.outfile + '.json'
 
         # Check if outfile exists append results to it by loading the json blob,
@@ -282,7 +276,7 @@ def get_results():
                 json.dump(contents, f)
         f.close()
     # Condition for printing json output to terminal
-    elif not(args.export) and (not(args.outfile) and args.format == 'json'):
+    elif not(args.yara) and (not(args.outfile) and args.format == 'json'):
         print(OTX_JSON_result)
     # Contition for writing out to a csv file
     elif (args.outfile and args.format == 'csv' and args.text):
@@ -351,7 +345,6 @@ def get_results():
     # Condition for printing indicators by PulseID to terminal as CSV
     elif not(args.outfile)  and args.pulseID and args.format == 'csv':
         normalized_data = pandas.json_normalize(item_dict)
-
         OTX_CSV_result = normalized_data.to_csv(header=True, index=False, encoding='utf-8')
 
         if OTX_CSV_result:
@@ -360,14 +353,12 @@ def get_results():
         for j in OTX_out_array:
             print(j)
     # Condition for printing YARA export output to terminal
-    elif not(args.outfile or args.dumpDir) and args.export == 'YARA':
+    elif not(args.outfile or args.dumpDir) and args.yara:
         for i in range(alerts_array_length):
-            print(item_dict[i]['id'])
-            print(item_dict[i]['content'])
+            print(item_dict[i]['content'], '\n')
     # Condition for printing YARA to uniquely named files in a dump directory
-    elif not(args.outfile) and (args.dumpDir and args.export == 'YARA'):
+    elif not(args.outfile) and (args.dumpDir and args.yara):
         for i in range(alerts_array_length):
-            ruleID = item_dict[i]['id']
             YARArule = item_dict[i]['content']
             ruleNameLineRegex = re.compile(r'rule\s+\S+')
             ruleNameRaw1 = ruleNameLineRegex.search(YARArule).group(0)
@@ -382,7 +373,7 @@ def get_results():
         print('CSV output is not currently supported for this query response')
 
 def main():
-    get_results()
+    print_results()
 
 if __name__ == '__main__':
     main()

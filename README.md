@@ -1,4 +1,4 @@
-# Squirrel OTX Search
+# Squirrel OTX Search v1.0.2
 A cross platform command line tool that search against Alienvault OTX from the comfort of your terminal written in Python3
 
 For details about the Alienvault OTX DirectConnect API, visit https://otx.alienvault.com/api
@@ -14,7 +14,7 @@ Coming Soon:
 Example Usage:
 Export YARA rules from subsribed pulses
 
-    > python.exe squirrelOTXsearch.py --key 12345678987654321 --export=YARA
+    > python.exe squirrelOTXsearch.py --key 12345678987654321 --yara
 
 Get general data about a file hash
 
