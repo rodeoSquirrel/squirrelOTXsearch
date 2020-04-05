@@ -87,15 +87,17 @@ parser.add_argument('--outfile', action='store', required=False,
                     help='Path to output file, extension will be added automatically')
 parser.add_argument('--dumpDir', action='store', required=False,
                     help='Path for dumping exported data to a file')
-args = parser.parse_args()
 
+args = parser.parse_args()
 otx_key = os.getenv('OTXAPI')
 
 if len(sys.argv)==1:
     parser.print_help()
     sys.exit(1)
 elif not otx_key:
-    sys.exit('WARNING: OTXAPI environment variable not detected. Set the environment variable, open a new terminal session, and try again...')
+    sys.exit('WARNING: OTXAPI environment variable not detected.\
+    \nSome AlienvaultOTX features require authenticated API access \
+    \nSet the environment variable, open a new terminal session, and try again')
 
 if args.dumpDir and not os.path.isdir(args.dumpDir):
     os.mkdir(args.dumpDir)
